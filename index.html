@@ -1,0 +1,371 @@
+<!doctype html>
+<html lang="en"> 
+ <head> 
+  <meta charset="UTF-8"> 
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <title>Critical thinking quiz mode</title> 
+  <script src="https://cdn.tailwindcss.com"></script> 
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"> 
+  <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #E5E4E2;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            
+            padding: 20px;
+        }
+      
+        .option-button {
+            transition: all 0.2s ease-in-out;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            text-align: left;
+        }
+        .option-button:hover:not(.answered) {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+        }
+        /* Icon styles */
+        .feedback-icon {
+            width: 24px;
+            height: 24px;
+            margin-left: 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .feedback-icon-visible {
+            opacity: 1;
+        }
+    </style> 
+ </head> 
+ <body> 
+  <div id="quiz-container" class="w-full max-w-2xl bg-white shadow-xl rounded-2xl p-6 md:p-10"> <!-- Header: Score and Progress --> 
+   <div class="flex justify-between items-center mb-6 border-b pb-4 border-gray-200"> 
+    <h1 class="text-3xl font-bold text-blue-600">Critical thinking quiz example</h1> 
+    <div class="text-lg font-semibold text-gray-700">
+      Score: <span id="score-display" class="text-green-600">0</span> / <span id="total-questions">30</span> 
+    </div> 
+   </div> <!-- Question Display --> 
+   <div id="question-card" class="mb-8 min-h-24"> 
+    <p class="text-2xl font-semibold text-gray-800 mb-4" id="question-text"> Loading question... </p> 
+    <div id="options-container" class="space-y-4"> 
+    </div> 
+   </div> <!-- Navigation and Progress --> 
+   <div class="flex justify-between items-center pt-4 border-t border-gray-200"> 
+    <div class="text-lg text-gray-600 font-medium">
+      Question <span id="current-q-number">0</span> of 15
+    </div> <button id="next-button" onclick="nextQuestion()" class="px-6 py-3 bg-blue-600 text-white font-bold rounded-xl shadow-lg hover:bg-blue-700 transition duration-150 ease-in-out disabled:bg-gray-400" disabled> Next Question </button> 
+   </div> <!-- Final Score Modal --> 
+   <div id="final-score-modal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center p-4 z-50"> 
+    <div class="bg-white rounded-xl p-8 text-center shadow-2xl w-full max-w-sm"> 
+     <h2 class="text-4xl font-extrabold text-blue-600 mb-4">Quiz Complete!</h2> 
+     <p class="text-xl text-gray-700 mb-6">Your final score is:</p> 
+     <p class="text-6xl font-black text-green-700 mb-8" id="final-score-text">0 / 20</p> <button onclick="window.location.reload()" class="px-6 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition duration-150"> Start Over </button> 
+    </div> 
+   </div> 
+  </div> 
+  <script>
+      
+        const quizData = [
+          
+          
+  
+  
+  {
+    "question": "What is the primary role of evidence in critical thinking and medicine?",
+    "options": [
+      "A. To support personal opinions",
+      "B. To introduce subjectivity",
+      "C. To provide a logical and factual basis",
+      "D. To promote emotional reasoning",
+      "E. To encourage cognitive biases"
+    ],
+    "answer": "C. To provide a logical and factual basis"
+  },
+  {
+    "question": "Which type of study design is often considered the gold standard for assessing the effectiveness of medical interventions?",
+    "options": [
+      "A. Cross-sectional study",
+      "B. Case-control study",
+      "C. Randomized controlled trial (RCT)",
+      "D. Cohort study",
+      "E. Meta-analysis"
+    ],
+    "answer": "C. Randomized controlled trial (RCT)"
+  },
+  {
+    "question": "In medicine, what does \"EBM\" stand for?",
+    "options": [
+      "A. Evidence-Based Medicine",
+      "B. Emotional Behavioral Management",
+      "C. Effective Biomedical Measurement",
+      "D. Exemplary Biological Methodology",
+      "E. Extraordinary Clinical Outcomes"
+    ],
+    "answer": "A. Evidence-Based Medicine"
+  },
+  {
+    "question": "What distinguishes strong evidence from weak evidence in medicine?",
+    "options": [
+      "A. Sample size",
+      "B. Personal opinions",
+      "C. Robust methodology",
+      "D. Lack of replication",
+      "E. Subjective bias"
+    ],
+    "answer": "A. Sample size"
+  },
+  {
+    "question": "Which of the following is an example of weak evidence in medicine?",
+    "options": [
+      "A. Large-scale RCT with statistically significant results",
+      "B. Multiple well-designed cohort studies supporting a treatment",
+      "C. A small, non-randomized study with inconclusive findings",
+      "D. A systematic review with clear and strong conclusions",
+      "E. Meta-analysis of randomized controlled trials"
+    ],
+    "answer": "C. A small, non-randomized study with inconclusive findings"
+  },
+  {
+    "question": "What type of evidence relies on personal stories or individual experiences?",
+    "options": [
+      "A. Empirical evidence",
+      "B. Expert consensus",
+      "C. Anecdotal evidence",
+      "D. Strong evidence",
+      "E. Meta-analysis"
+    ],
+    "answer": "C. Anecdotal evidence"
+  },
+  {
+    "question": "Which of the following is a characteristic of evidence-based medicine (EBM)?",
+    "options": [
+      "A. Emphasis on subjective opinions",
+      "B. Reliance on anecdotal evidence",
+      "C. Use of the best available evidence",
+      "D. Avoidance of empirical research",
+      "E. Disregard for patient safety"
+    ],
+    "answer": "C. Use of the best available evidence"
+  },
+  {
+    "question": "In critical thinking, what is the role of evidence when evaluating a claim?",
+    "options": [
+      "A. To introduce subjectivity",
+      "B. To validate the claim based on objective data",
+      "C. To support personal biases",
+      "D. To disregard logical reasoning",
+      "E. To promote emotional arguments"
+    ],
+    "answer": "B. To validate the claim based on objective data"
+  },
+  {
+    "question": "Which of the following is an example of a claim with no evidence in medicine?",
+    "options": [
+      "A. Claims supported by robust clinical trials",
+      "B. Claims of miraculous cures without scientific support",
+      "C. Claims based on expert consensus",
+      "D. Claims backed by strong observational studies",
+      "E. Claims founded on anecdotal evidence"
+    ],
+    "answer": "B. Claims of miraculous cures without scientific support"
+  },
+  {
+    "question": "What is the primary purpose of evaluating evidence in medicine and critical thinking?",
+    "options": [
+      "A. To introduce subjectivity",
+      "B. To promote cognitive biases",
+      "C. To assess the strength and reliability of claims and conclusions",
+      "D. To rely solely on expert opinions",
+      "E. To minimize objectivity"
+    ],
+    "answer": "C. To assess the strength and reliability of claims and conclusions"
+  },
+  {
+    "question": "Which factor is essential for assessing the credibility of evidence?",
+    "options": [
+      "A. The evidence's publication date",
+      "B. The number of anecdotes included",
+      "C. The source's expertise and potential biases",
+      "D. The evidence's alignment with personal opinions",
+      "E. The complexity of the research methods used"
+    ],
+    "answer": "C. The source's expertise and potential biases"
+  },
+  {
+    "question": "What does it mean for evidence to be statistically significant in quantitative studies?",
+    "options": [
+      "A. It supports a widely held opinion.",
+      "B. It aligns with expert consensus.",
+      "C. It is free from publication bias.",
+      "D. The results are not likely due to random chance.",
+      "E. The evidence is based on strong methodology."
+    ],
+    "answer": "D. The results are not likely due to random chance."
+  },
+  {
+    "question": "What is the role of peer review in assessing evidence?",
+    "options": [
+      "A. It indicates that the evidence is the most recent.",
+      "B. It strengthens the credibility of the evidence.",
+      "C. It suggests that the evidence is biased.",
+      "D. It highlights the evidence's conflicts of interest.",
+      "E. It makes the evidence less relevant."
+    ],
+    "answer": "B. It strengthens the credibility of the evidence."
+  },
+  {
+    "question": "Which characteristic is crucial for assessing the relevance of evidence in a specific context?",
+    "options": [
+      "A. The evidence's complexity",
+      "B. The recency of the evidence",
+      "C. The logical soundness of the evidence",
+      "D. The alignment of the evidence with expert consensus",
+      "E. The direct relationship of the evidence to the claim or topic"
+    ],
+    "answer": "E. The direct relationship of the evidence to the claim or topic"
+  },
+  {
+    "question": "What strengthens the overall strength of evidence in an argument or claim?",
+    "options": [
+      "A. Using outdated evidence",
+      "B. Highlighting conflicts of interest",
+      "C. Presenting consistent findings from multiple sources",
+      "D. Including anecdotal stories",
+      "E. Relying on personal opinions"
+    ],
+    "answer": "C. Presenting consistent findings from multiple sources"
+  }
+
+
+
+          
+
+];
+
+         let currentQuestionIndex = 0;
+        let score = 0;
+        let answered = false;
+        const totalQuestions = quizData.length;
+
+        // --- DOM ELEMENTS ---
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const scoreDisplay = document.getElementById('score-display');
+        const currentQNumber = document.getElementById('current-q-number');
+        const nextButton = document.getElementById('next-button');
+        const finalScoreModal = document.getElementById('final-score-modal');
+        const finalScoreText = document.getElementById('final-score-text');
+
+        // --- UTILITY ICONS (Inline SVG for instant rendering) ---
+        const correctIconSVG = `
+            <svg class="feedback-icon text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>`;
+        const incorrectIconSVG = `
+            <svg class="feedback-icon text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>`;
+        
+        // --- QUIZ LOGIC FUNCTIONS ---
+
+        function loadQuestion() {
+            if (currentQuestionIndex >= totalQuestions) {
+                showFinalScore();
+                return;
+            }
+
+            const currentQ = quizData[currentQuestionIndex];
+            answered = false;
+            nextButton.disabled = true;
+            optionsContainer.innerHTML = '';
+
+            questionText.textContent = currentQ.question;
+            currentQNumber.textContent = currentQuestionIndex + 1;
+
+            currentQ.options.forEach((optionText, index) => {
+                const optionButton = document.createElement('button');
+                optionButton.className = 'option-button w-full p-4 bg-gray-100 rounded-xl font-medium text-gray-700 shadow-sm border border-gray-200';
+                optionButton.setAttribute('data-option', optionText);
+                optionButton.innerHTML = `
+                    <span class="flex-1">${optionText}</span>
+                    <span class="feedback-placeholder"></span>
+                `;
+                optionButton.onclick = () => selectOption(optionText, optionButton);
+                optionsContainer.appendChild(optionButton);
+            });
+        }
+
+        function selectOption(selectedOptionText, selectedButton) {
+            if (answered) {
+                return; // Prevent multiple clicks on the current question
+            }
+            answered = true;
+            nextButton.disabled = false;
+            
+            const currentQ = quizData[currentQuestionIndex];
+            const isCorrect = selectedOptionText === currentQ.answer;
+
+            if (isCorrect) {
+                score++;
+                scoreDisplay.textContent = score;
+            }
+
+            showFeedback(currentQ.answer, selectedButton);
+        }
+
+        function showFeedback(correctAnswer, selectedButton) {
+            const buttons = optionsContainer.querySelectorAll('.option-button');
+            
+            buttons.forEach(button => {
+                const optionText = button.getAttribute('data-option');
+                const isCorrect = optionText === correctAnswer;
+                const isSelected = button === selectedButton;
+
+                // 1. Mark the button as answered (disables hover/interaction)
+                button.classList.add('answered');
+                button.disabled = true;
+
+                // 2. Add visual feedback (Telegram Quiz Style)
+                const iconPlaceholder = button.querySelector('.feedback-placeholder');
+                
+                if (isCorrect) {
+                    // Always mark the correct answer green
+                    button.classList.add('bg-green-100', 'border-green-400');
+                    iconPlaceholder.innerHTML = correctIconSVG;
+                    iconPlaceholder.querySelector('.feedback-icon').classList.add('feedback-icon-visible');
+                    button.classList.remove('bg-gray-100');
+                } else if (isSelected) {
+                    // Mark the user's incorrect choice red
+                    button.classList.add('bg-red-100', 'border-red-400');
+                    iconPlaceholder.innerHTML = incorrectIconSVG;
+                    iconPlaceholder.querySelector('.feedback-icon').classList.add('feedback-icon-visible');
+                    button.classList.remove('bg-gray-100');
+                }
+            });
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            loadQuestion();
+        }
+
+        function showFinalScore() {
+            finalScoreText.textContent = `${score} / ${totalQuestions}`;
+            finalScoreModal.classList.remove('hidden');
+        }
+
+        // --- INITIALIZATION ---
+        window.onload = function() {
+            document.getElementById('total-questions').textContent = totalQuestions;
+            loadQuestion();
+        };
+
+    </script> 
+ 
+</body></html>
